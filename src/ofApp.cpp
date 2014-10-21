@@ -51,15 +51,7 @@ void ofApp::update(){
     if (brightness > 100) {
         brightness = 200 - brightness;
     }
-    foreground_color = ofColor::fromHsb(hue, 100, 100);
-    background_color = ofColor::fromHsb(ofWrap(hue - 150, 0, 299), ofWrap(saturation - 50, 0, 100), ofWrap(brightness - 50, 0, 100));
-//    fbo.begin();
-//    ofPushStyle();
-//    ofSetColor(background_color);
-//    ofRect(0, 0, kinect.width, kinect.height);
-//    ofPopStyle();
-//    fbo.end();
-//    bounce.setTexture(fbo.getTextureReference(), 1);
+    foreground_color = ofColor::fromHsb(hue, 255, 100);
 
     // Kinect
     kinect.update();
@@ -69,7 +61,7 @@ void ofApp::update(){
             background = input_image;
             b_learn_background = false;
         }
-        input_image -= background;
+        input_image -= background; 
         // Take only stuff that's significantly different than the background
         if(!bCalibrate){
             unsigned char *pix = input_image.getPixels();
