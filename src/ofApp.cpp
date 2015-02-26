@@ -13,8 +13,7 @@ void ofApp::setup(){
     background.allocate(kinect.width, kinect.height);
     background.set(0);
     threshold = 3;
-    min_contour_area = 1400;
-    contourFinder.setMinArea(min_contour_area);
+    contourFinder.setMinArea(MIN_CONTOUR_AREA);
     
     angle = 17;
     kinect.setCameraTiltAngle(angle);
@@ -56,7 +55,7 @@ void ofApp::update(){
         }
         input_image -= background;
         // Take only stuff that's significantly different than the background
-        if(true){//!bCalibrate){
+        if(!bCalibrate){
             unsigned char *pix = input_image.getPixels();
             for (int i = 0; i < input_image.getHeight() * input_image.getWidth(); i++) {
                 if(pix[i] > threshold)
@@ -66,7 +65,12 @@ void ofApp::update(){
             }
         }
         input_image.flagImageChanged();
-        contourFinder.findContours(input_image);
+        if(bCalibrate) {
+            prettyContourFinder.findContours(input_image, MIN_CONTOUR_AREA, (kinect.width*kinect.height)/2, 7, false);
+        }
+        else {
+            contourFinder.findContours(input_image);
+        }
     }
     
     // Ripples
@@ -104,7 +108,7 @@ void ofApp::draw(){
 //        ofTranslate(dx, dy);
 //        ofScale(ofGetWidth()/kinect.width*dz,ofGetHeight()/kinect.height*dz);
 //        input_image.draw(0,0);
-        contourFinder.draw();
+        prettyContourFinder.draw(dx,dy, ofGetWidth()*dz, ofGetHeight()*dz);
 //        input_image.draw(dx, dy, PROJECTOR_WIDTH*dz, PROJECTOR_HEIGHT*dz);
 //        contourFinder.draw(dx, dy, ofGetWidth()*dz, ofGetHeight()*dz);
         ofPopMatrix();

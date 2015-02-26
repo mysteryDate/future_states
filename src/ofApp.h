@@ -10,6 +10,8 @@
 #define PROJECTOR_WIDTH 1024
 #define PROJECTOR_HEIGHT 768
 
+#define MIN_CONTOUR_AREA 1400
+
 class ofApp : public ofBaseApp{
 
 	public:
@@ -27,6 +29,7 @@ class ofApp : public ofBaseApp{
     bool b_learn_background;
     int angle;
     ofxCv::ContourFinder    contourFinder;
+    ofxCvContourFinder      prettyContourFinder;
     int min_contour_area;
     
     // Ripples
