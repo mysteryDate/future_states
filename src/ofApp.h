@@ -58,4 +58,7 @@ class ofApp : public ofBaseApp{
     bool bFreezeRed;
     bool bFreezeGreen;
     bool bFreezeBlue;
+    int redFrame;
+    int greenFrame;
+    int blueFrame;
 };

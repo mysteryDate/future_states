@@ -39,6 +39,9 @@ void ofApp::setup(){
     red = 0;
     green = 0;
     blue = 0;
+    redFrame = 0;
+    greenFrame = 0;
+    blueFrame = 0;
 }
 
 //--------------------------------------------------------------
@@ -50,14 +53,17 @@ void ofApp::update(){
 
     
     if(!bFreezeRed) {
-        red =   ofMap(sin(2 * PI * frame/ 233), -1, 1, 0, 255);
+        redFrame++;
     }
     if(!bFreezeGreen) {
-        green = ofMap(sin(2 * PI * frame/127), -1, 1, 0, 255);
+        greenFrame++;
     }
     if(!bFreezeBlue) {
-        blue =  ofMap(sin(2 * PI * frame/179), -1, 1, 0, 255);
+        blueFrame++;
     }
+    red =   ofMap(sin(2 * PI * redFrame/ 233), -1, 1, 0, 255);
+    green = ofMap(sin(2 * PI * greenFrame/127), -1, 1, 0, 255);
+    blue =  ofMap(sin(2 * PI * blueFrame/179), -1, 1, 0, 255);
     
     
 //    foreground_color = ofColor::fromHsb(hue, 127, 127);
