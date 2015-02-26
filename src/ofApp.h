@@ -51,4 +51,11 @@ class ofApp : public ofBaseApp{
     float dz;
     
     bool display_feedback;
+    
+    int red;
+    int green;
+    int blue;
+    bool bFreezeRed;
+    bool bFreezeGreen;
+    bool bFreezeBlue;
 };

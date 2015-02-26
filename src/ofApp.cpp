@@ -12,7 +12,7 @@ void ofApp::setup(){
     input_image.allocate(kinect.width, kinect.height);
     background.allocate(kinect.width, kinect.height);
     background.set(0);
-    threshold = 3;
+    threshold = 10;
     contourFinder.setMinArea(MIN_CONTOUR_AREA);
     
     angle = 17;
@@ -35,6 +35,10 @@ void ofApp::setup(){
     
     min_brightness = 90;
     ofBackground(0, 0, 0);
+    
+    red = 0;
+    green = 0;
+    blue = 0;
 }
 
 //--------------------------------------------------------------
@@ -45,9 +49,17 @@ void ofApp::update(){
 //    int hue = ofMap(frame % 200, 0, 200, 0, 255);
 
     
-    int red =   ofMap(sin(2 * PI * frame/ 233), -1, 1, 0, 255);
-    int green = ofMap(sin(2 * PI * frame/127), -1, 1, 0, 255);
-    int blue =  ofMap(sin(2 * PI * frame/179), -1, 1, 0, 255);
+    if(!bFreezeRed) {
+        red =   ofMap(sin(2 * PI * frame/ 233), -1, 1, 0, 255);
+    }
+    if(!bFreezeGreen) {
+        green = ofMap(sin(2 * PI * frame/127), -1, 1, 0, 255);
+    }
+    if(!bFreezeBlue) {
+        blue =  ofMap(sin(2 * PI * frame/179), -1, 1, 0, 255);
+    }
+    
+    
 //    foreground_color = ofColor::fromHsb(hue, 127, 127);
     foreground_color = ofColor(red, green, blue);
 
@@ -61,7 +73,7 @@ void ofApp::update(){
         }
         input_image -= background;
         // Take only stuff that's significantly different than the background
-        if(!bCalibrate){
+        if(true){
             unsigned char *pix = input_image.getPixels();
             for (int i = 0; i < input_image.getHeight() * input_image.getWidth(); i++) {
                 if(pix[i] > threshold)
@@ -71,12 +83,12 @@ void ofApp::update(){
             }
         }
         input_image.flagImageChanged();
-        if(bCalibrate) {
+//        if(bCalibrate) {
             prettyContourFinder.findContours(input_image, MIN_CONTOUR_AREA, (kinect.width*kinect.height)/2, 7, false);
-        }
-        else {
-            contourFinder.findContours(input_image);
-        }
+//        }
+//        else {
+//            contourFinder.findContours(input_image);
+//        }
     }
     
     // Ripples
@@ -88,18 +100,26 @@ void ofApp::update(){
 //        ofPopStyle();
 //        b_learn_background = false;
 //    }
-    ofPushStyle();
-    ofSetColor(foreground_color);
-    for (int i = 0; i < contourFinder.size(); i++) {
-        ofPolyline blob = contourFinder.getPolyline(i);
+    if(!bCalibrate){
+        ofPushStyle();
+        ofSetColor(foreground_color);
+        for (int i = 0; i < prettyContourFinder.blobs.size(); i++) {
+//            ofPolyline blob = contourFinder.getPolyline(i);
+            vector<ofPoint> blob = prettyContourFinder.blobs[i].pts;
         
-        ofBeginShape();
-        for (int j = 0; j < blob.size(); j++) {
-            ofVertex(blob[j]);
+            ofBeginShape();
+            for (int j = 0; j < blob.size(); j++) {
+                ofVertex(blob[j]);
+            }
+            ofEndShape();
         }
-        ofEndShape();
+        ofPopStyle();
     }
-    ofPopStyle();
+    if(bCalibrate) {
+        ofPushStyle();
+        ofSetColor(0,0,0);
+        ofRect(0, 0, ofGetWidth(), ofGetHeight());
+    }
     ripples.end();
     ripples.update();
     
@@ -129,7 +149,8 @@ void ofApp::draw(){
     << "Threshold: " << threshold << endl
     << "Contour area: " << min_contour_area << endl
     << "Damping: " << ripples.damping << endl
-    << "Tilt Angle: " << angle << endl;
+    << "Tilt Angle: " << angle << endl
+    << "RGB: " << bFreezeRed << bFreezeGreen << bFreezeBlue << endl;
     if(display_feedback) {
         ofDrawBitmapString(reportStream.str(), 100, 600);
     }
@@ -196,6 +217,15 @@ void ofApp::keyPressed(int key){
             angle--;
             if(angle<-30) angle=-30;
             kinect.setCameraTiltAngle(angle);
+            break;
+        case '1':
+            bFreezeRed = !bFreezeRed;
+            break;
+        case '2':
+            bFreezeGreen = !bFreezeGreen;
+            break;
+        case '3':
+            bFreezeBlue = !bFreezeBlue;
             break;
     }
 }
