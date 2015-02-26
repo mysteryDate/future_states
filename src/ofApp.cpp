@@ -42,8 +42,14 @@ void ofApp::update(){
 
     // Colors
     int frame = ofGetFrameNum();
-    int hue = ofMap(frame % 200, 0, 200, 0, 255);
-    foreground_color = ofColor::fromHsb(hue, 127, 127);
+//    int hue = ofMap(frame % 200, 0, 200, 0, 255);
+
+    
+    int red =   ofMap(sin(2 * PI * frame/ 233), -1, 1, 0, 255);
+    int green = ofMap(sin(2 * PI * frame/127), -1, 1, 0, 255);
+    int blue =  ofMap(sin(2 * PI * frame/179), -1, 1, 0, 255);
+//    foreground_color = ofColor::fromHsb(hue, 127, 127);
+    foreground_color = ofColor(red, green, blue);
 
     // Kinect
     kinect.update();

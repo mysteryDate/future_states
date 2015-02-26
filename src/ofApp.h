@@ -7,6 +7,8 @@
 #include "ofxRipples.h"
 #include "ofxBounce.h"
 
+#include <math.h>
+
 #define PROJECTOR_WIDTH 1024
 #define PROJECTOR_HEIGHT 768
 
