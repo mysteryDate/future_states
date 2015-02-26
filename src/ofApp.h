@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include "ofxOpenCv.h"
+#include "ofxCv.h"
 #include "ofxKinect.h"
 #include "ofxRipples.h"
 #include "ofxBounce.h"
@@ -25,7 +26,7 @@ class ofApp : public ofBaseApp{
     int                     threshold;
     bool b_learn_background;
     int angle;
-    ofxCvContourFinder      contourFinder;
+    ofxCv::ContourFinder    contourFinder;
     int min_contour_area;
     
     // Ripples

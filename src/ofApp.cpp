@@ -14,6 +14,7 @@ void ofApp::setup(){
     background.set(0);
     threshold = 3;
     min_contour_area = 1400;
+    contourFinder.setMinArea(min_contour_area);
     
     angle = 17;
     kinect.setCameraTiltAngle(angle);
@@ -42,16 +43,8 @@ void ofApp::update(){
 
     // Colors
     int frame = ofGetFrameNum();
-    int hue = ofMap(frame % 200, 0, 200, 0, 299);
-    int saturation = ofMap(frame % 189, 0, 189, min_brightness, 200 - min_brightness);
-    if (saturation > 100) {
-        saturation = 200 - saturation;
-    }
-    int brightness = ofMap(frame % 160, 0, 160, min_brightness, 200 - min_brightness);
-    if (brightness > 100) {
-        brightness = 200 - brightness;
-    }
-    foreground_color = ofColor::fromHsb(hue, 255, 100);
+    int hue = ofMap(frame % 200, 0, 200, 0, 255);
+    foreground_color = ofColor::fromHsb(hue, 127, 127);
 
     // Kinect
     kinect.update();
@@ -61,9 +54,9 @@ void ofApp::update(){
             background = input_image;
             b_learn_background = false;
         }
-        input_image -= background; 
+        input_image -= background;
         // Take only stuff that's significantly different than the background
-        if(!bCalibrate){
+        if(true){//!bCalibrate){
             unsigned char *pix = input_image.getPixels();
             for (int i = 0; i < input_image.getHeight() * input_image.getWidth(); i++) {
                 if(pix[i] > threshold)
@@ -73,7 +66,7 @@ void ofApp::update(){
             }
         }
         input_image.flagImageChanged();
-        contourFinder.findContours(input_image, min_contour_area, (kinect.width*kinect.height)/2, 7, false);
+        contourFinder.findContours(input_image);
     }
     
     // Ripples
@@ -87,8 +80,8 @@ void ofApp::update(){
 //    }
     ofPushStyle();
     ofSetColor(foreground_color);
-    for (int i = 0; i < contourFinder.blobs.size(); i++) {
-        vector<ofPoint> blob = contourFinder.blobs[i].pts;
+    for (int i = 0; i < contourFinder.size(); i++) {
+        ofPolyline blob = contourFinder.getPolyline(i);
         
         ofBeginShape();
         for (int j = 0; j < blob.size(); j++) {
@@ -107,11 +100,17 @@ void ofApp::update(){
 void ofApp::draw(){
     
     if(bCalibrate) {
-        input_image.draw(dx, dy, PROJECTOR_WIDTH*dz, PROJECTOR_HEIGHT*dz);
-        contourFinder.draw(dx, dy, PROJECTOR_WIDTH*dz, PROJECTOR_HEIGHT*dz);
+        ofPushMatrix();
+//        ofTranslate(dx, dy);
+//        ofScale(ofGetWidth()/kinect.width*dz,ofGetHeight()/kinect.height*dz);
+//        input_image.draw(0,0);
+        contourFinder.draw();
+//        input_image.draw(dx, dy, PROJECTOR_WIDTH*dz, PROJECTOR_HEIGHT*dz);
+//        contourFinder.draw(dx, dy, ofGetWidth()*dz, ofGetHeight()*dz);
+        ofPopMatrix();
     }
     else {
-        ripples.draw(dx, dy, PROJECTOR_WIDTH*dz, PROJECTOR_HEIGHT*dz);
+        ripples.draw(dx, dy, ofGetWidth()*dz, ofGetHeight()*dz);
     }
     
     stringstream reportStream;
