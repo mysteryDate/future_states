@@ -14,6 +14,7 @@ void ofApp::setup(){
     background.set(0);
     threshold = 10;
     contourFinder.setMinArea(MIN_CONTOUR_AREA);
+    min_contour_area = 1400;
     
     angle = 17;
     kinect.setCameraTiltAngle(angle);
@@ -45,10 +46,15 @@ void ofApp::setup(){
     
     // Tempo
     bEvaluateTempo = true;
+    
 }
 
 //--------------------------------------------------------------
 void ofApp::update(){
+    
+    // Is it a beat?
+    float intPart = 0;
+    float beatProximity = modf((ofGetElapsedTimef() - lastBeat) / tempo, &intPart);
 
     // Colors
     int frame = ofGetFrameNum();
@@ -71,6 +77,13 @@ void ofApp::update(){
     
 //    foreground_color = ofColor::fromHsb(hue, 127, 127);
     foreground_color = ofColor(red, green, blue);
+    if (beatProximity > 0.8) {
+        foreground_color *= ofMap(1 - beatProximity, 0, 0.2, 2, 1);
+    }
+    if (beatProximity < 0.2) {
+        foreground_color *= ofMap(beatProximity, 0, 0.2, 2, 1);
+    }
+//    foreground_color *= ofMap(beatProximity, 0, 1, 0.5, 1.5);
 
     // Kinect
     kinect.update();
@@ -93,7 +106,7 @@ void ofApp::update(){
         }
         input_image.flagImageChanged();
 //        if(bCalibrate) {
-            prettyContourFinder.findContours(input_image, MIN_CONTOUR_AREA, (kinect.width*kinect.height)/2, 7, false);
+            prettyContourFinder.findContours(input_image, min_contour_area, (kinect.width*kinect.height)/2, 7, false);
 //        }
 //        else {
 //            contourFinder.findContours(input_image);
@@ -101,12 +114,13 @@ void ofApp::update(){
     }
     
     if(!bCalibrate){
-        drawRipples();
+        updateRipples();
     }
     else {
         ofPushStyle();
         ofSetColor(0,0,0);
         ofRect(0, 0, ofGetWidth(), ofGetHeight());
+        ofPopStyle();
     }
     
     if (bEvaluateTempo) {
@@ -115,7 +129,7 @@ void ofApp::update(){
 }
 
 //--------------------------------------------------------------
-void ofApp::drawRipples() {
+void ofApp::updateRipples() {
     
     ripples.begin();
     ofPushStyle();
@@ -167,7 +181,8 @@ void ofApp::draw(){
         ofPopMatrix();
     }
     else {
-        ripples.draw(dx, dy, ofGetWidth()*dz, ofGetHeight()*dz);
+        ripples.draw(dx, dy, ofGetWidth()*dz, ofGetHeight()*dz);o
+//        input_image.draw(0, 0, ofGetWidth()*dz, ofGetHeight()*dz);
     }
     
     stringstream reportStream;
@@ -178,10 +193,37 @@ void ofApp::draw(){
     << "Damping: " << ripples.damping << endl
     << "Tilt Angle: " << angle << endl
     << "RGB: " << red << ", " << green << ", " << blue << endl
-    << "Tempo: " << (1.0 / tempo) * 60 << "bpm" << endl;
+//    << "Tempo: " << (1.0 / tempo) * 60 << "bpm" << endl;
+    << (ofGetElapsedTimef() - lastBeat) / tempo << endl;
     if(display_feedback) {
         ofDrawBitmapString(reportStream.str(), 100, 300);
     }
+}
+
+//--------------------------------------------------------------
+void ofApp::drawPointCloud() {
+    int w = 640;
+    int h = 480;
+    ofMesh mesh;
+    mesh.setMode(OF_PRIMITIVE_POINTS);
+    int step = 2;
+    for(int y = 0; y < h; y += step) {
+        for(int x = 0; x < w; x += step) {
+            if(kinect.getDistanceAt(x, y) > 0) {
+                mesh.addColor(kinect.getColorAt(x,y));
+                mesh.addVertex(kinect.getWorldCoordinateAt(x, y));
+            }
+        }
+    }
+    glPointSize(3);
+    ofPushMatrix();
+    // the projected points are 'upside down' and 'backwards'
+    ofScale(1, -1, -1);
+    ofTranslate(0, 0, -1000); // center the points a bit
+    ofEnableDepthTest();
+    mesh.drawVertices();
+    ofDisableDepthTest();
+    ofPopMatrix();
 }
 
 //--------------------------------------------------------------
@@ -196,6 +238,9 @@ void ofApp::keyPressed(int key){
             break;
         case 'b':
             b_learn_background = true;
+            break;
+        case 'B':
+            background.set(0);
             break;
         case '=':
             threshold++;

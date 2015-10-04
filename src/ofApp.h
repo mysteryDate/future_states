@@ -40,12 +40,14 @@ class ofApp : public ofBaseApp{
     ofxBounce   bounce;
     int         damping;
     ofFbo       fbo;
-    void        drawRipples();
+    void        updateRipples();
     
     // Colors
     ofColor foreground_color;
     ofColor background_color;
     int min_brightness;
+    
+    void drawPointCloud();
 		
     bool bCalibrate;
     int dx;
