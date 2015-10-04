@@ -6,6 +6,7 @@
 #include "ofxKinect.h"
 #include "ofxRipples.h"
 #include "ofxBounce.h"
+#include "ofUtils.h"
 
 #include <math.h>
 
@@ -39,6 +40,7 @@ class ofApp : public ofBaseApp{
     ofxBounce   bounce;
     int         damping;
     ofFbo       fbo;
+    void        drawRipples();
     
     // Colors
     ofColor foreground_color;
@@ -61,4 +63,11 @@ class ofApp : public ofBaseApp{
     int redFrame;
     int greenFrame;
     int blueFrame;
+    
+    // Metronome
+    float tempo;
+    float lastBeat;
+    bool bEvaluateTempo;
+    vector<float> beats;
+    void evaluateTempo();
 };

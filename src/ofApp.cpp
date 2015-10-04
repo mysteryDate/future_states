@@ -42,6 +42,9 @@ void ofApp::setup(){
     redFrame = 0;
     greenFrame = 0;
     blueFrame = 0;
+    
+    // Tempo
+    bEvaluateTempo = true;
 }
 
 //--------------------------------------------------------------
@@ -97,39 +100,57 @@ void ofApp::update(){
 //        }
     }
     
-    // Ripples
-    ripples.begin();
-//    if (b_learn_background) {
-//        ofPushStyle();
-//        ofSetColor(0, 0, 0);
-//        ofRect(0, 0, kinect.width, kinect.height);
-//        ofPopStyle();
-//        b_learn_background = false;
-//    }
     if(!bCalibrate){
-        ofPushStyle();
-        ofSetColor(foreground_color);
-        for (int i = 0; i < prettyContourFinder.blobs.size(); i++) {
-//            ofPolyline blob = contourFinder.getPolyline(i);
-            vector<ofPoint> blob = prettyContourFinder.blobs[i].pts;
-        
-            ofBeginShape();
-            for (int j = 0; j < blob.size(); j++) {
-                ofVertex(blob[j]);
-            }
-            ofEndShape();
-        }
-        ofPopStyle();
+        drawRipples();
     }
-    if(bCalibrate) {
+    else {
         ofPushStyle();
         ofSetColor(0,0,0);
         ofRect(0, 0, ofGetWidth(), ofGetHeight());
     }
+    
+    if (bEvaluateTempo) {
+        evaluateTempo();
+    }
+}
+
+//--------------------------------------------------------------
+void ofApp::drawRipples() {
+    
+    ripples.begin();
+    ofPushStyle();
+    ofSetColor(foreground_color);
+    for (int i = 0; i < prettyContourFinder.blobs.size(); i++) {
+        vector<ofPoint> blob = prettyContourFinder.blobs[i].pts;
+        
+        ofBeginShape();
+        for (int j = 0; j < blob.size(); j++) {
+            ofVertex(blob[j]);
+        }
+        ofEndShape();
+    }
+    ofPopStyle();
+    
     ripples.end();
     ripples.update();
+}
+
+//--------------------------------------------------------------
+void ofApp::evaluateTempo() {
     
-//    bounce << ripples;
+    tempo = 0;
+    
+    for (int ii = 1; ii < beats.size(); ii++) {
+        float t = beats[ii] - beats[ii - 1];
+        tempo += t;
+    }
+    
+    tempo /= (beats.size() - 1);
+    
+    beats.clear();
+    bEvaluateTempo = false;
+    
+    lastBeat = ofGetElapsedTimef();
 }
 
 //--------------------------------------------------------------
@@ -156,9 +177,10 @@ void ofApp::draw(){
     << "Contour area: " << min_contour_area << endl
     << "Damping: " << ripples.damping << endl
     << "Tilt Angle: " << angle << endl
-    << "RGB: " << bFreezeRed << bFreezeGreen << bFreezeBlue << endl;
+    << "RGB: " << red << ", " << green << ", " << blue << endl
+    << "Tempo: " << (1.0 / tempo) * 60 << "bpm" << endl;
     if(display_feedback) {
-        ofDrawBitmapString(reportStream.str(), 100, 600);
+        ofDrawBitmapString(reportStream.str(), 100, 300);
     }
 }
 
@@ -232,6 +254,13 @@ void ofApp::keyPressed(int key){
             break;
         case '3':
             bFreezeBlue = !bFreezeBlue;
+            break;
+            
+        case 'j':
+            beats.push_back(ofGetElapsedTimef());
+            if (beats.size() == 4) {
+                bEvaluateTempo = true;
+            }
             break;
     }
 }
