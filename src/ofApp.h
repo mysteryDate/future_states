@@ -24,6 +24,8 @@ class ofApp : public ofBaseApp{
 
 		void keyPressed(int key);
     
+    int mode;
+    
     // Kinect variables
     ofxKinect   kinect;
     ofxCvGrayscaleImage     input_image;
@@ -72,4 +74,7 @@ class ofApp : public ofBaseApp{
     bool bEvaluateTempo;
     vector<float> beats;
     void evaluateTempo();
+    
+    // For the point cloud
+    ofEasyCam easyCam;
 };

@@ -2,6 +2,8 @@
 
 //--------------------------------------------------------------
 void ofApp::setup(){
+    
+    mode = 1;
 
     display_feedback = true;
     
@@ -73,17 +75,19 @@ void ofApp::update(){
     red =   ofMap(sin(2 * PI * redFrame/ 233), -1, 1, 0, 255);
     green = ofMap(sin(2 * PI * greenFrame/127), -1, 1, 0, 255);
     blue =  ofMap(sin(2 * PI * blueFrame/179), -1, 1, 0, 255);
-    
-    
 //    foreground_color = ofColor::fromHsb(hue, 127, 127);
     foreground_color = ofColor(red, green, blue);
+    background_color = ofColor(1 - red, 1 - green, 1- blue);
+    
+    float brightness = 1;
+
     if (beatProximity > 0.8) {
-        foreground_color *= ofMap(1 - beatProximity, 0, 0.2, 2, 1);
+        brightness = cos(2 * PI * (beatProximity - 1) / 0.4) + 2;
     }
     if (beatProximity < 0.2) {
-        foreground_color *= ofMap(beatProximity, 0, 0.2, 2, 1);
+        brightness = cos(2 * PI * (beatProximity) / 0.4) + 2;
     }
-//    foreground_color *= ofMap(beatProximity, 0, 1, 0.5, 1.5);
+    foreground_color *= (brightness * brightness);
 
     // Kinect
     kinect.update();
@@ -113,7 +117,7 @@ void ofApp::update(){
 //        }
     }
     
-    if(!bCalibrate){
+    if(mode == 2){
         updateRipples();
     }
     else {
@@ -170,7 +174,7 @@ void ofApp::evaluateTempo() {
 //--------------------------------------------------------------
 void ofApp::draw(){
     
-    if(bCalibrate) {
+    if(mode == 1) {
         ofPushMatrix();
 //        ofTranslate(dx, dy);
 //        ofScale(ofGetWidth()/kinect.width*dz,ofGetHeight()/kinect.height*dz);
@@ -180,9 +184,14 @@ void ofApp::draw(){
 //        contourFinder.draw(dx, dy, ofGetWidth()*dz, ofGetHeight()*dz);
         ofPopMatrix();
     }
-    else {
-        ripples.draw(dx, dy, ofGetWidth()*dz, ofGetHeight()*dz);o
+    else if (mode == 2) {
+        ripples.draw(dx, dy, ofGetWidth()*dz, ofGetHeight()*dz);
 //        input_image.draw(0, 0, ofGetWidth()*dz, ofGetHeight()*dz);
+    }
+    else if (mode == 3) {
+        easyCam.begin();
+        drawPointCloud();
+        easyCam.end();
     }
     
     stringstream reportStream;
@@ -196,7 +205,7 @@ void ofApp::draw(){
 //    << "Tempo: " << (1.0 / tempo) * 60 << "bpm" << endl;
     << (ofGetElapsedTimef() - lastBeat) / tempo << endl;
     if(display_feedback) {
-        ofDrawBitmapString(reportStream.str(), 100, 300);
+        ofDrawBitmapString(reportStream.str(), 100, ofGetHeight() - 200);
     }
 }
 
@@ -209,8 +218,9 @@ void ofApp::drawPointCloud() {
     int step = 2;
     for(int y = 0; y < h; y += step) {
         for(int x = 0; x < w; x += step) {
-            if(kinect.getDistanceAt(x, y) > 0) {
-                mesh.addColor(kinect.getColorAt(x,y));
+            float dist = kinect.getDistanceAt(x, y);
+            if(dist > 0) {
+                mesh.addColor(foreground_color * ofMap(dist, 0, 3000, 2, 0));
                 mesh.addVertex(kinect.getWorldCoordinateAt(x, y));
             }
         }
@@ -236,10 +246,10 @@ void ofApp::keyPressed(int key){
         case 'f':
             ofToggleFullscreen();
             break;
-        case 'b':
+        case 'v':
             b_learn_background = true;
             break;
-        case 'B':
+        case 'V':
             background.set(0);
             break;
         case '=':
@@ -247,9 +257,6 @@ void ofApp::keyPressed(int key){
             break;
         case '-':
             threshold--;
-            break;
-        case 'c':
-            bCalibrate = !bCalibrate;
             break;
         case 'D':
             ripples.damping += 0.01;
@@ -291,21 +298,29 @@ void ofApp::keyPressed(int key){
             if(angle<-30) angle=-30;
             kinect.setCameraTiltAngle(angle);
             break;
-        case '1':
+        case 'r':
             bFreezeRed = !bFreezeRed;
             break;
-        case '2':
+        case 'g':
             bFreezeGreen = !bFreezeGreen;
             break;
-        case '3':
+        case 'b':
             bFreezeBlue = !bFreezeBlue;
             break;
-            
         case 'j':
             beats.push_back(ofGetElapsedTimef());
             if (beats.size() == 4) {
                 bEvaluateTempo = true;
             }
+            break;
+        case '1':
+            mode = 1;
+            break;
+        case '2':
+            mode = 2;
+            break;
+        case '3':
+            mode = 3;
             break;
     }
 }
